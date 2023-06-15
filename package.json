@@ -1,0 +1,30 @@
+{
+  "name": "redis-practice",
+  "version": "1.0.0",
+  "description": "A simple project to learn how to use redis for session-mgt, an in-memory data store, rate-limiter, distributed caching, and as a message-queue",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx tsc",
+    "start": "node build/index.js"
+  },
+  "keywords": [
+    "Redis"
+  ],
+  "author": "Amarachi Goodness",
+  "license": "ISC",
+  "dependencies": {
+    "connect-redis": "^7.1.0",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "ioredis": "^5.3.2",
+    "winston": "^3.9.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/express-session": "^1.17.7",
+    "@types/node": "^20.3.1",
+    "nodemon": "^2.0.22",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.3"
+  }
+}
