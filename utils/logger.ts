@@ -1,12 +1,13 @@
 import winston from "winston";
 
+const logDirectory = './logs';
+
 const logger = winston.createLogger({
-  level: 'info',
   format: winston.format.json(),
   defaultMeta: { service: 'redis-service' },
   transports: [
-    new winston.transports.File({ filename: 'error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'combined.log' }),
+    new winston.transports.File({ filename: 'errors.log', dirname: './logs', level: 'error' }),
+    new winston.transports.File({ filename: 'combined.log', dirname: './logs', }),
   ],
 });
 
