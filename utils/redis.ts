@@ -6,14 +6,14 @@ const client = new Redis(config.redis.uri);
 
 client
   .on("connect", function () {
-    logger.info('Redis connected');
+    logger.info("Redis connected");
   })
   .on("error", function (error) {
-    logger.error('Redis error', error);
+    logger.error("Redis error", error);
   });
 
-  export const disconnectRedisConnection = () => {
-    client.disconnect();
-  }
+export const disconnectRedisConnection = () => {
+  client.disconnect();
+};
 
-  export default client;
+export default client;
