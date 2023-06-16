@@ -2,8 +2,9 @@ import express, { NextFunction, Request, Response } from "express";
 import session from "express-session";
 import redisSession from "./services/redis-session-store";
 import { disconnectRedisConnection } from "./utils/redis";
+import logger from "./utils/logger";
 
-declare module 'express-session' {
+declare module "express-session" {
   interface SessionData {
     username: string;
   }
@@ -14,40 +15,43 @@ const port = 3000;
 
 app.use(session({ ...redisSession }));
 
-app.get("/", (req: Request, res: Response, next: NextFunction) => {
+app.get("/", (req: Request, res: Response) => {
   if (req.session.username) {
-    next();
+    res.sendStatus(200);
   } else {
     res.redirect("/signin");
   }
 });
 
-app.get("/signup", (req: Request, res: Response) => {
+app.post("/signup", (req: Request, res: Response) => {
   const { username, password } = req.body;
   if (username && password) {
-    req.session.username = username;
     res.redirect("/signin");
   } else {
-    res.redirect("/signup");
+    res.sendStatus(400);
   }
 });
 
-app.get("/signin", (req: Request, res: Response) => {
+app.post("/signin", (req: Request, res: Response) => {
   const { username, password } = req.body;
   if (username && password) {
     req.session.username = username;
     res.redirect("/");
   } else {
-    res.redirect("/signup");
+    res.sendStatus(400);
   }
 });
 
 app.get("/signout", (req: Request, res: Response) => {
-  req.session.destroy;
-  disconnectRedisConnection();
-  res.redirect("/signin");
+  req.session.destroy((err) => {
+    if (err) {
+      return res.redirect("/signin");
+    }
+    disconnectRedisConnection();
+    res.redirect("/signin");
+  });
 });
 
 app.listen(port, () => {
-  console.log(`Application running on port ${port}`);
+  logger.info(`Application running on port ${port}`);
 });

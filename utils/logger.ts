@@ -1,20 +1,26 @@
-import winston from "winston";
+import { createLogger, format, transports } from "winston";
 
-const logDirectory = './logs';
-
-const logger = winston.createLogger({
-  format: winston.format.json(),
-  defaultMeta: { service: 'redis-service' },
+const logger = createLogger({
+  format: format.combine(
+    format.timestamp({ format: "MMM-DD-YYYY HH:mm:ss" }),
+    format.align(),
+    format.printf(
+      (info) => `${info.level}: ${[info.timestamp]}: ${info.message}`
+    )
+  ),
+  defaultMeta: { service: "redis-service" },
   transports: [
-    new winston.transports.File({ filename: 'errors.log', dirname: './logs', level: 'error' }),
-    new winston.transports.File({ filename: 'combined.log', dirname: './logs', }),
+    new transports.File({ filename: "logs/error.log", level: "error" }),
+    new transports.File({ filename: "logs/combined.log" }),
   ],
 });
 
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.simple(),
-  }));
+if (process.env.NODE_ENV !== "production") {
+  logger.add(
+    new transports.Console({
+      format: format.simple(),
+    })
+  );
 }
 
 export default logger;

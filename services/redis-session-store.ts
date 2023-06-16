@@ -9,8 +9,8 @@ let redisStore = new RedisStore({
 // Initialize sesssion storage.
 const redisSession = {
   store: redisStore,
-  resave: true,
-  saveUninitialized: true,
+  resave: false,
+  saveUninitialized: false,
   secret: config.sessionSecret
 };
 
