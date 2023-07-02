@@ -1,14 +1,18 @@
 import express, { Request, Response } from "express";
 import session from "express-session";
 import redisSession from "./services/redis-session-store";
-import { getUserDataInRedis } from "./services/redis-data-store";
-import { disconnectRedisConnection } from "./utils/redis";
 import logger from "./utils/logger";
-import saveUserDataInRedis from "./services/redis-data-store";
+import {
+  saveUserDataInRedis,
+  getUserDataFromRedis,
+  checkIfKeyExistsInRedis,
+} from "./services/redis-data-store";
+import { disconnectRedisConnection } from "./utils/redis";
+import { IUser } from "./types/user.type";
 
 declare module "express-session" {
   interface SessionData {
-    username: string;
+    user: IUser;
   }
 }
 
@@ -18,34 +22,37 @@ const port = 3000;
 app.use(session({ ...redisSession }));
 
 app.get("/", (req: Request, res: Response) => {
-  if (req.session.username) {
-    res.sendStatus(200);
-  } else {
-    res.redirect("/signin");
+  if (req.session.user) {
+    return res.sendStatus(200);
   }
+  return res.sendStatus(401);
 });
 
 app.post("/signup", async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
   if (username && email && password) {
+    const userExist: boolean = await checkIfKeyExistsInRedis(email);
+    if (userExist) {
+      return res.sendStatus(400);
+    }
     await saveUserDataInRedis(req.body);
-    res.redirect("/signin");
-  } else {
-    res.sendStatus(400);
+    return res.redirect("/signin");
   }
+  return res.sendStatus(400);
 });
 
 app.post("/signin", async (req: Request, res: Response) => {
   const { email, password } = req.body;
   if (email && password) {
-    const userData = await getUserDataInRedis(req.body);
+    const userData: IUser | null = await getUserDataFromRedis(req.body);
     if (!userData) {
-      res.sendStatus(400);
+      return res.sendStatus(400);
+    } else {
+      req.session.user = userData;
+      return res.redirect("/");
     }
-    res.redirect("/");
-  } else {
-    res.sendStatus(400);
   }
+  return res.sendStatus(400);
 });
 
 app.get("/signout", (req: Request, res: Response) => {
@@ -54,7 +61,7 @@ app.get("/signout", (req: Request, res: Response) => {
       return res.redirect("/signin");
     }
     disconnectRedisConnection();
-    res.redirect("/signin");
+    return res.redirect("/signin");
   });
 });
 
