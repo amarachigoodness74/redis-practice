@@ -9,6 +9,7 @@ import {
 } from "./services/redis-data-store";
 import { disconnectRedisConnection } from "./utils/redis";
 import { IUser } from "./types/user.type";
+import { getUsersUniqueNumber } from "./services/redis-as-cache";
 
 declare module "express-session" {
   interface SessionData {
@@ -21,9 +22,11 @@ const port = 3000;
 
 app.use(session({ ...redisSession }));
 
-app.get("/", (req: Request, res: Response) => {
+app.get("/", async (req: Request, res: Response) => {
   if (req.session.user) {
-    return res.sendStatus(200);
+    // Perform expensive calculation and cache result
+    const usersUniqueNumber = await getUsersUniqueNumber(req.session.user.username || 'username');
+    return res.status(200).json(usersUniqueNumber);
   }
   return res.sendStatus(401);
 });
