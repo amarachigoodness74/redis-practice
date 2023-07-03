@@ -53,7 +53,7 @@ app.get("/ping", async (req: Request, res: Response) => {
   if (!result.success) {
     return res
       .status(429)
-      .json("Too many requests in 1 minute. Please try again in a few minutes.");
+      .json({error: "Too many requests in 1 minute. Please try again in a few minutes."});
   }
 
   return res.status(200).json({ ping: "pong" });
