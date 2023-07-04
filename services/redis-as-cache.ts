@@ -1,3 +1,4 @@
+import logger from "../utils/logger";
 import redisClient from "../utils/redis";
 
 const generateRandomString = (length: number) => {
@@ -30,7 +31,7 @@ export async function getUsersUniqueNumber(username: string) {
       data: results,
     };
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     return null
   }
 }

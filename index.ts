@@ -12,7 +12,8 @@ import { disconnectRedisConnection } from "./utils/redis";
 import { IUser } from "./types/user.type";
 import { getUsersUniqueNumber } from "./services/redis-as-cache";
 import rateLimiter from "./services/redis-as-rate-limiter";
-import redisClient from './utils/redis';
+import redisClient from "./utils/redis";
+import { sendEmail } from "./services/queue/jobs/send-email.job";
 
 declare module "express-session" {
   interface SessionData {
@@ -27,12 +28,12 @@ const DURATION = 60;
 
 app.use(session({ ...redisSession }));
 
-
-
 app.get("/", async (req: Request, res: Response) => {
   if (req.session.user) {
     // Perform expensive calculation and cache result
-    const usersUniqueNumber = await getUsersUniqueNumber(req.session.user.username || 'username');
+    const usersUniqueNumber = await getUsersUniqueNumber(
+      req.session.user.username || "username"
+    );
     return res.status(200).json(usersUniqueNumber);
   }
   return res.sendStatus(401);
@@ -53,7 +54,10 @@ app.get("/ping", async (req: Request, res: Response) => {
   if (!result.success) {
     return res
       .status(429)
-      .json({error: "Too many requests in 1 minute. Please try again in a few minutes."});
+      .json({
+        error:
+          "Too many requests in 1 minute. Please try again in a few minutes.",
+      });
   }
 
   return res.status(200).json({ ping: "pong" });
@@ -96,6 +100,11 @@ app.get("/signout", (req: Request, res: Response) => {
     disconnectRedisConnection();
     return res.redirect("/signin");
   });
+});
+
+app.get("/send-mail", async (req: Request, res: Response) => {
+  await sendEmail("This is just a test message to learn redis");
+  return res.send({ status: "ok" });
 });
 
 app.listen(port, () => {
